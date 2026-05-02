@@ -785,8 +785,7 @@ with st.expander("Ver interpretación"):
     
 
 # ======================================================================
-# 🔴 INCISO F una volatilidad m ́ovil y asumiendo una distribu-
-cion normal
+# 🔴 INCISO F VAR una volatilidad movil y asumiendo una distribucion normal
 # ======================================================================
 
 st.subheader(" VaR con volatilidad móvil")
