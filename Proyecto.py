@@ -372,16 +372,7 @@ for alpha in alphas:
     })
 
 
-# --------------------------------------------------
-# RESULTADOS EN TABLA
-# --------------------------------------------------
-df_resultados = pd.DataFrame(resultados)
 
-st.subheader("Resultados de VaR y Expected Shortfall")
-st.dataframe(df_resultados.style.format({
-    "VaR": "{:.4f}",
-    "ES": "{:.4f}"
-}))
 
 # ==============================
 # TABLA FINAL
