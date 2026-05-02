@@ -57,30 +57,56 @@ df = yf.download(
 if isinstance(df.columns, pd.MultiIndex):
     df.columns = df.columns.droplevel(1)
 
-# ==============================
+## ==============================
 # CÁLCULO DE RENDIMIENTOS
 # ==============================
-df["Returns"] = (df["Close"] / df["Close"].shift(1)) - 1
-df = df.dropna()
+
+# Calculamos el rendimiento diario del trigo.
+# Fórmula:
+# Rendimiento = (Precio de hoy / Precio de ayer) - 1
+df["Returns"] = df["Close"].pct_change()
+
+# Eliminamos los valores vacíos generados por pct_change().
+# El primer día no tiene rendimiento porque no existe un precio anterior.
+df = df.dropna(subset=["Returns"])
+
+
 # ==============================
 # GRÁFICAS
 # ==============================
-st.subheader(" Precio del trigo")
+
+# Gráfica del precio de cierre del trigo
+st.subheader("Precio del trigo")
 st.line_chart(df["Close"])
 
-st.subheader(" Rendimientos diarios del trigo")
+# Gráfica de los rendimientos diarios
+st.subheader("Rendimientos diarios del trigo")
 st.line_chart(df["Returns"])
 
-# ==============================
-# ESTADÍSTICAS
-# ==============================
-media = df["Returns"].mean()
-desviacion = df["Returns"].std()
-sesgo = df["Returns"].skew()
-exceso_curtosis = df["Returns"].kurt()
 
-st.subheader(" Métricas de rendimiento")
+# ==============================
+# ESTADÍSTICAS DESCRIPTIVAS
+# ==============================
 
+# Guardamos la serie de rendimientos en una variable.
+# Esto evita repetir df["Returns"] muchas veces.
+rendimientos = df["Returns"]
+
+# Media diaria de los rendimientos
+media = rendimientos.mean()
+
+# Volatilidad diaria aproximada
+desviacion = rendimientos.std()
+
+# Sesgo: mide si la distribución está cargada hacia pérdidas o ganancias extremas
+sesgo = rendimientos.skew()
+
+# Exceso de curtosis: mide qué tan pesadas son las colas de la distribución
+exceso_curtosis = rendimientos.kurt()
+
+st.subheader("Métricas de rendimiento")
+
+# Creamos una tabla para mostrar las estadísticas principales
 tabla_estadisticas = pd.DataFrame({
     "Media": [media],
     "Desviación estándar": [desviacion],
@@ -88,6 +114,7 @@ tabla_estadisticas = pd.DataFrame({
     "Exceso de curtosis": [exceso_curtosis]
 }, index=["Trigo (ZW=F)"])
 
+# Mostramos la tabla con formato de 6 decimales
 st.dataframe(tabla_estadisticas.style.format("{:.6f}"))
 
 # ==============================
