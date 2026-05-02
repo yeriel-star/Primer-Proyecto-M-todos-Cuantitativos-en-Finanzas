@@ -710,79 +710,75 @@ with tab99:
         """)
 
 # ======================================================================
-# 🔴 INCISO E:  Violaciones de Var y ES
+# 🔴 INCISO E 
 # ======================================================================
-st.subheader(" Violaciones de VaR y Expected Shortfall")
 
-# Lista para guardar resultados
-violaciones_resultados = []
-
-# Tamaño de muestra usado en rolling
-n_total = len(rolling_results)
-
-for alpha in alphas_rolling:
-    label = f"{alpha:.0%}"
-
-    columnas_riesgo = [
-        f"VaR Hist {label}",
-        f"ES Hist {label}",
-        f"VaR Normal {label}",
-        f"ES Normal {label}"
-    ]
-
-    for col in columnas_riesgo:
-
-        # Como VaR y ES están calculados como pérdidas positivas,
-        # los multiplicamos por -1 para compararlos contra retornos reales.
-        limite_riesgo = -rolling_results[col]
-
-        # Violación: cuando el rendimiento real cae por debajo del VaR o ES
-        violaciones = rolling_results["P&L"] < limite_riesgo
-
-        num_violaciones = violaciones.sum()
-        porcentaje_violaciones = num_violaciones / n_total
-
-        violaciones_resultados.append({
-            "Nivel de confianza": alpha,
-            "Medida": col,
-            "Violaciones": num_violaciones,
-            "Porcentaje": porcentaje_violaciones
-        })
-
-# Crear tabla
-tabla_violaciones = pd.DataFrame(violaciones_resultados)
-
-st.dataframe(
-    tabla_violaciones.style.format({
-        "Nivel de confianza": "{:.3f}",
-        "Porcentaje": "{:.2%}"
-    })
-)
-
-# ==============================
-# INTERPRETACIÓN DE VIOLACIONES
-# ==============================
 st.subheader("Interpretación de Violaciones")
 
-with st.expander("Ver interpretación"):
+umbral_violaciones = 0.025  # 2.5%
+
+with st.expander("Ver interpretación detallada"):
+
     st.markdown("""
-    Idea clave
+    **Idea clave**
 
-    - Las violaciones indican cuándo la pérdida real superó el VaR o ES.  
+    Una violación ocurre cuando la pérdida real supera la estimación de riesgo.
+    Es decir, cuando el rendimiento observado fue peor que el VaR o el ES estimado.
 
-    Resultados
-
-    - El **VaR histórico (95%)** está bien calibrado.  
-    - El **VaR al 99%** subestima el riesgo extremo.  
-    - El **VaR normal** es más conservador.  
-    - El **ES** presenta menos violaciones, siendo más robusto.  
-
-    Conclusión
-
-    - El ES es mejor para medir riesgo extremo.  
-    - Es preferible un modelo **conservador** que no subestime el riesgo.
+    De acuerdo con la nota del ejercicio, una buena estimación debe generar
+    un porcentaje de violaciones menor al **2.5%**.
     """)
-    
+
+    st.markdown("### Evaluación por modelo")
+
+    for _, fila in tabla_violaciones.iterrows():
+
+        medida = fila["Medida"]
+        alpha = fila["Nivel de confianza"]
+        porcentaje = fila["Porcentaje"]
+        violaciones = fila["Violaciones"]
+
+        if porcentaje < umbral_violaciones:
+            st.success(
+                f"**{medida}** con nivel de confianza {alpha:.1%}: "
+                f"presenta {violaciones} violaciones, equivalente a {porcentaje:.2%}. "
+                f"Como está por debajo del 2.5%, se considera una estimación prudente."
+            )
+        else:
+            st.error(
+                f"**{medida}** con nivel de confianza {alpha:.1%}: "
+                f"presenta {violaciones} violaciones, equivalente a {porcentaje:.2%}. "
+                f"Como supera el 2.5%, el modelo subestima el riesgo."
+            )
+
+    st.markdown("### Conclusión general")
+
+    modelos_buenos = tabla_violaciones[
+        tabla_violaciones["Porcentaje"] < umbral_violaciones
+    ]
+
+    modelos_malos = tabla_violaciones[
+        tabla_violaciones["Porcentaje"] >= umbral_violaciones
+    ]
+
+    if len(modelos_buenos) > 0:
+        mejor_modelo = modelos_buenos.sort_values("Porcentaje").iloc[0]
+
+        st.write(
+            f"El modelo con menor porcentaje de violaciones es "
+            f"**{mejor_modelo['Medida']}**, con "
+            f"**{mejor_modelo['Porcentaje']:.2%}** de violaciones."
+        )
+
+    if len(modelos_malos) > 0:
+        st.warning(
+            "Algunos modelos superan el límite de 2.5%, por lo que no cumplen "
+            "con el criterio de eficiencia planteado en el ejercicio."
+        )
+    else:
+        st.success(
+            "Todos los modelos cumplen con el criterio de violaciones menores al 2.5%."
+        )
 
 # ======================================================================
 # 🔴 INCISO F VAR una volatilidad movil y asumiendo una distribucion normal
