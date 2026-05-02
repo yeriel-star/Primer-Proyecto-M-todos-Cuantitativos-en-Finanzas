@@ -19,8 +19,8 @@ st.title("Análisis del Trigo")
 # AUTOR
 # ==============================
 st.markdown("""
-**Autor:** Carlos Yeriel Santoyo Cortés  
-**Facultad:** Facultad de Ciencias
+Alumno: Carlos Yeriel Santoyo Cortés  
+Facultad de Ciencias
 """)
 
 # ==============================
