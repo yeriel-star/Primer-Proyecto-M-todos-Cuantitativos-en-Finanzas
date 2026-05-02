@@ -259,7 +259,7 @@ pueden existir asimetrías, valores extremos o colas pesadas.
 # ======================================================================
 
 st.markdown("---")
-st.header("🔴 INCISO D: VaR y Expected Shortfall (ES)")
+st.header(" VaR y Expected Shortfall (ES)")
 
 # --------------------------------------------------
 # CONVERSIÓN A PÉRDIDAS
