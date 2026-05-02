@@ -13,12 +13,20 @@ import plotly.graph_objects as go
 # ==============================
 st.set_page_config(page_title="Análisis del Trigo", layout="wide")
 
-st.title("Análisis del Trigo ")
+st.title("Análisis del Trigo")
+
+# ==============================
+# AUTOR
+# ==============================
+st.markdown("""
+**Autor:** Carlos Yeriel Santoyo Cortés  
+**Facultad:** Facultad de Ciencias
+""")
 
 # ==============================
 # DESCRIPCIÓN DEL ACTIVO
 # ==============================
-st.subheader(" Descripción del activo")
+st.subheader("Descripción del activo")
 
 st.write("""
 El activo analizado corresponde al contrato de futuros del trigo, identificado en Yahoo Finance con el ticker **ZW=F**.
@@ -34,7 +42,6 @@ Su precio está influenciado por diversos factores, entre los que destacan:
 
 Los datos utilizados en este análisis fueron obtenidos automáticamente desde **Yahoo Finance**, considerando información diaria desde el **1 de enero de 2010** hasta la fecha más reciente disponible.
 """)
-
 # ==============================
 # DESCARGA DE DATOS
 # ==============================
