@@ -319,17 +319,17 @@ st.subheader("Resumen de riesgo")
 
 with st.expander("Ver interpretación del VaR y Expected Shortfall"):
     st.markdown("""
-    ** Riesgo**
+    Riesgo
 
     - El VaR indica las pérdidas bajo condiciones normales, pero no captura completamente eventos extremos.  
     - El ES muestra pérdidas promedio en escenarios adversos, reflejando mejor el riesgo real.  
 
-    ** Modelos**
+    Modelos
 
     - El modelo normal tiende a subestimar el riesgo.  
     - t-Student y Monte Carlo capturan mejor colas pesadas y eventos extremos.  
 
-    ** Conclusión**
+    Conclusión
 
     - El VaR no es una medida coherente (no siempre refleja el beneficio de diversificación).  
     - El ES es más robusto y adecuado para medir riesgo extremo.
@@ -682,20 +682,20 @@ st.subheader("Interpretación de Violaciones")
 
 with st.expander("Ver interpretación"):
     st.markdown("""
-    **Idea clave**
+    Idea clave
 
     - Las violaciones indican cuándo la pérdida real superó el VaR o ES.  
 
-    **Resultados**
+    Resultados
 
     - El **VaR histórico (95%)** está bien calibrado.  
     - El **VaR al 99%** subestima el riesgo extremo.  
     - El **VaR normal** es más conservador.  
     - El **ES** presenta menos violaciones, siendo más robusto.  
 
-    ** Conclusión**
+    Conclusión
 
-    - El **ES** es mejor para medir riesgo extremo.  
+    - El ES es mejor para medir riesgo extremo.  
     - Es preferible un modelo **conservador** que no subestime el riesgo.
     """)
     
@@ -914,7 +914,7 @@ st.plotly_chart(fig, use_container_width=True)
 # ==============================
 
 # ==============================
-# INTERPRETACIÓN PROFESIONAL
+# INTERPRETACIÓN 
 # ==============================
 
 with st.expander("Interpretación del VaR con volatilidad móvil"):
