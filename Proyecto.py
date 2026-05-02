@@ -710,75 +710,171 @@ with tab99:
         """)
 
 # ======================================================================
-# 🔴 INCISO E 
+# 🔴 INCISO E: BACKTESTING - VIOLACIONES DE VaR Y EXPECTED SHORTFALL
 # ======================================================================
 
-st.subheader("Interpretación de Violaciones")
+st.markdown("---")
+st.header("🔴 INCISO E: Violaciones de VaR y Expected Shortfall")
 
-umbral_violaciones = 0.025  # 2.5%
+# --------------------------------------------------
+# OBJETIVO DEL INCISO
+# --------------------------------------------------
+# En este inciso se evalúa qué tan eficientes fueron las estimaciones
+# de riesgo calculadas previamente con ventanas móviles.
+#
+# Una violación ocurre cuando la pérdida real observada supera la
+# pérdida estimada por el VaR o el Expected Shortfall.
+#
+# De acuerdo con la nota del ejercicio:
+# Una buena estimación debe generar un porcentaje de violaciones
+# menor al 2.5%.
 
-with st.expander("Ver interpretación detallada"):
+st.subheader("Tabla de violaciones")
+
+# Lista donde se guardarán los resultados de cada modelo
+violaciones_resultados = []
+
+# Número total de observaciones disponibles para evaluar las violaciones
+n_total = len(rolling_results)
+
+# Umbral indicado en la nota del ejercicio
+umbral_violaciones = 0.025
+
+
+# --------------------------------------------------
+# CÁLCULO DE VIOLACIONES
+# --------------------------------------------------
+
+for alpha in alphas_rolling:
+
+    # Convertimos el nivel de confianza a texto.
+    # Ejemplo: 0.95 -> "95%"
+    label = f"{alpha:.0%}"
+
+    # Columnas que contienen las estimaciones de riesgo
+    # que se van a comparar contra el rendimiento real.
+    columnas_riesgo = [
+        f"VaR Hist {label}",
+        f"ES Hist {label}",
+        f"VaR Normal {label}",
+        f"ES Normal {label}"
+    ]
+
+    for col in columnas_riesgo:
+
+        # VaR y ES fueron calculados como pérdidas positivas.
+        # Sin embargo, los rendimientos negativos representan pérdidas.
+        # Por eso multiplicamos por -1 para convertir el límite de riesgo
+        # a la misma escala que el rendimiento real.
+        limite_riesgo = -rolling_results[col]
+
+        # Se considera violación cuando el rendimiento real observado
+        # cae por debajo del límite estimado por el VaR o ES.
+        #
+        # Ejemplo:
+        # Si el VaR es 3%, el límite en retornos es -3%.
+        # Hay violación si el rendimiento real fue menor a -3%.
+        violaciones = rolling_results["P&L"] < limite_riesgo
+
+        # Número total de violaciones
+        num_violaciones = violaciones.sum()
+
+        # Porcentaje de violaciones respecto al tamaño de la muestra
+        porcentaje_violaciones = num_violaciones / n_total
+
+        # Guardamos los resultados en una lista
+        violaciones_resultados.append({
+            "Nivel de confianza": alpha,
+            "Medida": col,
+            "Violaciones": num_violaciones,
+            "Porcentaje": porcentaje_violaciones
+        })
+
+
+# --------------------------------------------------
+# TABLA DE RESULTADOS
+# --------------------------------------------------
+
+tabla_violaciones = pd.DataFrame(violaciones_resultados)
+
+st.dataframe(
+    tabla_violaciones.style.format({
+        "Nivel de confianza": "{:.3f}",
+        "Porcentaje": "{:.2%}"
+    })
+)
+
+
+# ======================================================================
+# 🔴 INCISO E.1: INTERPRETACIÓN DE LAS VIOLACIONES
+# ======================================================================
+
+st.subheader("Interpretación de violaciones")
+
+with st.expander("Ver interpretación"):
 
     st.markdown("""
     **Idea clave**
 
-    Una violación ocurre cuando la pérdida real supera la estimación de riesgo.
-    Es decir, cuando el rendimiento observado fue peor que el VaR o el ES estimado.
+    Las violaciones muestran las ocasiones en las que la pérdida real fue mayor
+    que la pérdida estimada por el VaR o por el Expected Shortfall.
 
-    De acuerdo con la nota del ejercicio, una buena estimación debe generar
-    un porcentaje de violaciones menor al **2.5%**.
+    En términos prácticos, una violación significa que el modelo subestimó el
+    riesgo para ese periodo, porque la pérdida observada fue más severa que la
+    pérdida que el modelo había anticipado.
+
+    **Criterio del ejercicio**
+
+    De acuerdo con la nota del ejercicio, una buena estimación debe generar un
+    porcentaje de violaciones menor al **2.5%**.
+
+    Por lo tanto:
+
+    - Si el porcentaje de violaciones es menor al **2.5%**, la estimación puede
+      considerarse prudente.
+    - Si el porcentaje de violaciones es mayor al **2.5%**, el modelo no cumple
+      con el criterio solicitado y puede estar subestimando el riesgo.
     """)
 
-    st.markdown("### Evaluación por modelo")
+    st.markdown("""
+    **Interpretación de resultados**
 
-    for _, fila in tabla_violaciones.iterrows():
+    Al comparar los porcentajes de violaciones obtenidos para cada medida de
+    riesgo, se observa que los modelos no tienen el mismo desempeño.
 
-        medida = fila["Medida"]
-        alpha = fila["Nivel de confianza"]
-        porcentaje = fila["Porcentaje"]
-        violaciones = fila["Violaciones"]
+    Las estimaciones con nivel de confianza del **95%** suelen generar más
+    violaciones, ya que el umbral de pérdida es menos extremo. Por esta razón,
+    algunas medidas al 95% pueden superar el límite del **2.5%** establecido
+    en el ejercicio.
 
-        if porcentaje < umbral_violaciones:
-            st.success(
-                f"**{medida}** con nivel de confianza {alpha:.1%}: "
-                f"presenta {violaciones} violaciones, equivalente a {porcentaje:.2%}. "
-                f"Como está por debajo del 2.5%, se considera una estimación prudente."
-            )
-        else:
-            st.error(
-                f"**{medida}** con nivel de confianza {alpha:.1%}: "
-                f"presenta {violaciones} violaciones, equivalente a {porcentaje:.2%}. "
-                f"Como supera el 2.5%, el modelo subestima el riesgo."
-            )
+    En cambio, las estimaciones con nivel de confianza del **99%** tienden a
+    generar menos violaciones, porque utilizan un umbral de pérdida más
+    conservador. Esto significa que son más estrictas al estimar eventos
+    extremos.
 
-    st.markdown("### Conclusión general")
+    Además, el **Expected Shortfall (ES)** suele presentar menos violaciones que
+    el VaR, ya que no solo considera un percentil específico de la distribución,
+    sino también el comportamiento promedio de las pérdidas más severas.
+    """)
 
-    modelos_buenos = tabla_violaciones[
-        tabla_violaciones["Porcentaje"] < umbral_violaciones
-    ]
+    st.markdown("""
+    **Conclusión**
 
-    modelos_malos = tabla_violaciones[
-        tabla_violaciones["Porcentaje"] >= umbral_violaciones
-    ]
+    Con base en el criterio del **2.5%**, las mejores estimaciones son aquellas
+    que presentan un porcentaje de violaciones por debajo de dicho umbral.
 
-    if len(modelos_buenos) > 0:
-        mejor_modelo = modelos_buenos.sort_values("Porcentaje").iloc[0]
+    Si una medida supera ese porcentaje, entonces no cumple completamente con
+    la condición establecida en el ejercicio, porque permitió demasiados casos
+    en los que la pérdida real fue mayor que la pérdida estimada.
 
-        st.write(
-            f"El modelo con menor porcentaje de violaciones es "
-            f"**{mejor_modelo['Medida']}**, con "
-            f"**{mejor_modelo['Porcentaje']:.2%}** de violaciones."
-        )
+    En general, los modelos más conservadores, especialmente aquellos asociados
+    con niveles de confianza más altos y con Expected Shortfall, ofrecen una
+    mejor protección frente a pérdidas extremas.
 
-    if len(modelos_malos) > 0:
-        st.warning(
-            "Algunos modelos superan el límite de 2.5%, por lo que no cumplen "
-            "con el criterio de eficiencia planteado en el ejercicio."
-        )
-    else:
-        st.success(
-            "Todos los modelos cumplen con el criterio de violaciones menores al 2.5%."
-        )
+    Por lo tanto, para fines de administración de riesgo, es preferible utilizar
+    una medida que no subestime el riesgo, incluso si esto implica obtener una
+    estimación más conservadora.
+    """)
 
 # ======================================================================
 # 🔴 INCISO F VAR una volatilidad movil y asumiendo una distribucion normal
