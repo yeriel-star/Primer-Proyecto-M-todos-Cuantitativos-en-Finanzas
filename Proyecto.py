@@ -1107,7 +1107,7 @@ with st.expander("Interpretación del VaR con volatilidad móvil"):
     - Para un nivel de confianza del **{nivel_confianza:.0%}**, se observa un porcentaje de violaciones de **{violaciones.mean():.2%}**.
     - Una violación ocurre cuando el rendimiento real es inferior al umbral estimado por el VaR.
 
-    Evaluación del modelo**
+    Evaluación del modelo
 
     - Si el porcentaje de violaciones es cercano al nivel teórico esperado, el modelo se considera **bien calibrado**.  
     - Un porcentaje menor indica que el modelo es **conservador**, es decir, sobreestima el riesgo.  
