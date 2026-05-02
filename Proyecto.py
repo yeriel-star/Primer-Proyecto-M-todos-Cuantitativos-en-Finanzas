@@ -1132,7 +1132,7 @@ st.subheader("Conclusiones finales")
 
 with st.expander("Ver conclusiones del análisis"):
     st.markdown("""
-    ** Síntesis del análisis**
+    Síntesis del análisis
 
     A lo largo del estudio se evaluaron distintas metodologías para la medición del riesgo del trigo,
     incluyendo enfoques históricos, paramétricos (normal y t-Student) y modelos dinámicos con ventanas móviles.
