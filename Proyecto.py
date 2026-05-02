@@ -874,150 +874,153 @@ with st.expander("Ver interpretación"):
     """)
 
 # ======================================================================
-# 🔴 INCISO F VAR una volatilidad movil y asumiendo una distribucion normal
+# 🔴 INCISO F: VaR CON VOLATILIDAD MÓVIL Y DISTRIBUCIÓN NORMAL
 # ======================================================================
 
-st.subheader(" VaR con volatilidad móvil")
+st.markdown("---")
+st.header("🔴 INCISO F: VaR con volatilidad móvil")
 
 st.markdown("""
 Este modelo estima el VaR usando una **volatilidad móvil de 252 días**
 y suponiendo que los rendimientos siguen una distribución normal.
+
+De acuerdo con el ejercicio, se calculan dos niveles:
+
+- **Alpha = 0.05**, equivalente a VaR al **95%**
+- **Alpha = 0.01**, equivalente a VaR al **99%**
 """)
 
 # ==============================
-# Parámetro fijo del ejercicio
+# PARÁMETRO FIJO DEL EJERCICIO
 # ==============================
 
-# La ventana se fija en 252 rendimientos porque representa aproximadamente
-# un año bursátil. Esta es la ventana indicada en el ejercicio.
+# La ventana de 252 días representa aproximadamente un año bursátil.
+# Esta ventana se usa para calcular la desviación estándar móvil.
 window = 252
 
+
 # ==============================
-# Controles interactivos
+# PREPARACIÓN DE DATOS
 # ==============================
 
-# Creamos dos columnas para que los controles se vean más ordenados.
+# Tomamos los rendimientos diarios y eliminamos valores vacíos.
+returns = df["Returns"].dropna()
+
+# Calculamos la volatilidad móvil de 252 días.
+# Para cada fecha, se usa la desviación estándar de los últimos 252 rendimientos.
+rolling_sigma = returns.rolling(window=window).std()
+
+# Creamos un DataFrame para guardar el rendimiento real y los VaR móviles.
+var_volatilidad = pd.DataFrame(index=returns.index)
+
+# P&L real: rendimiento observado del trigo.
+# Si es negativo, representa una pérdida.
+var_volatilidad["P&L"] = returns
+
+# Guardamos también la volatilidad móvil para referencia.
+var_volatilidad["Volatilidad móvil 252"] = rolling_sigma
+
+
+# ==============================
+# CÁLCULO DEL VaR MÓVIL
+# ==============================
+
+# En el ejercicio alpha representa el nivel de significancia.
+# alpha = 0.05 -> VaR al 95%
+# alpha = 0.01 -> VaR al 99%
+alphas_var_movil = [0.05, 0.01]
+
+for alpha in alphas_var_movil:
+
+    # Convertimos alpha a nivel de confianza.
+    # Ejemplo: alpha = 0.05 -> nivel_confianza = 0.95
+    nivel_confianza = 1 - alpha
+
+    # Etiqueta para nombrar la columna.
+    # Ejemplo: 0.95 -> "95%"
+    label = f"{nivel_confianza:.0%}"
+
+    # Percentil de la normal estándar.
+    # Para alpha = 0.05, q_alpha ≈ -1.645
+    # Para alpha = 0.01, q_alpha ≈ -2.326
+    q_alpha = norm.ppf(alpha)
+
+    # Fórmula del ejercicio:
+    # VaR_t = q_alpha * sigma_t
+    #
+    # Como q_alpha es negativo, el VaR queda como rendimiento negativo.
+    # Esto permite compararlo directamente contra el rendimiento real.
+    var_volatilidad[f"VaR Vol {label}"] = (
+        q_alpha * var_volatilidad["Volatilidad móvil 252"]
+    )
+
+
+# ==============================
+# DESFASE PREDICTIVO
+# ==============================
+
+# El ejercicio indica que el VaR calculado con:
+# r1, r2, ..., r252
+# debe compararse contra r253.
+#
+# Por eso movemos las columnas de VaR un día hacia adelante.
+# Así evitamos usar información del mismo día que estamos evaluando.
+risk_cols = ["VaR Vol 95%", "VaR Vol 99%"]
+
+var_volatilidad[risk_cols] = var_volatilidad[risk_cols].shift(1)
+
+# Eliminamos valores vacíos generados por:
+# 1. La ventana móvil de 252 días
+# 2. El desfase de un día
+var_volatilidad = var_volatilidad.dropna()
+
+
+# ==============================
+# CONTROLES INTERACTIVOS
+# ==============================
+
 col1, col2 = st.columns(2)
 
 with col1:
-    # El usuario puede elegir entre VaR al 95% o al 99%.
-    # Esto NO cambia la ventana, solo cambia el nivel de confianza.
-    nivel_confianza = st.selectbox(
+    # Este selector solo cambia qué VaR se visualiza.
+    # Los dos VaR ya fueron calculados arriba.
+    nivel_confianza_seleccionado = st.selectbox(
         "Nivel de confianza",
         options=[0.95, 0.99],
         index=0,
-        format_func=lambda x: f"{x:.0%}"
+        format_func=lambda x: f"{x:.0%}",
+        key="nivel_confianza_var_movil"
     )
 
 with col2:
-    # Este slider solo controla cuántos días se muestran en la gráfica.
+    # Este slider solo controla el zoom visual de la gráfica.
     # No cambia el cálculo del VaR.
-    # Sirve como zoom visual para no saturar la gráfica con toda la serie.
     dias_mostrar = st.slider(
         "Días recientes a visualizar",
         min_value=250,
-        max_value=2500,
-        value=1000,
-        step=50
+        max_value=min(2500, len(var_volatilidad)),
+        value=min(1000, len(var_volatilidad)),
+        step=50,
+        key="dias_mostrar_var_movil"
     )
 
-# ==============================
-# Preparación de datos
-# ==============================
+# Nombre de la columna que se va a graficar.
+var_col = f"VaR Vol {nivel_confianza_seleccionado:.0%}"
 
-# Tomamos los rendimientos diarios del trigo y eliminamos valores vacíos.
-returns = df["Returns"].dropna()
-
-# Convertimos el nivel de confianza en alpha.
-# Ejemplo:
-# confianza = 95%  → alpha = 5%
-# confianza = 99%  → alpha = 1%
-alpha = 1 - nivel_confianza
-
-# Calculamos la volatilidad móvil.
-# Para cada día, se toma la desviación estándar de los últimos 252 rendimientos.
-# Esto hace que la volatilidad cambie a través del tiempo.
-rolling_sigma = returns.rolling(window).std()
-
-# Creamos un DataFrame para guardar:
-# 1. El rendimiento real observado (P&L)
-# 2. El VaR estimado con volatilidad móvil
-var_volatilidad = pd.DataFrame(index=returns.index)
-
-# P&L real:
-# Es el rendimiento diario observado del trigo.
-# Si es positivo, hubo ganancia.
-# Si es negativo, hubo pérdida.
-var_volatilidad["P&L"] = returns
 
 # ==============================
-# Cálculo del VaR
+# CÁLCULO DE VIOLACIONES
 # ==============================
 
-# Obtenemos el cuantil de la normal estándar.
-# Para 95% de confianza usamos alpha = 0.05, cuyo cuantil es aprox -1.645.
-# Para 99% de confianza usamos alpha = 0.01, cuyo cuantil es aprox -2.33.
-q_alpha = norm.ppf(alpha)
-
-# Nombre dinámico de la columna según el nivel elegido.
-# Ejemplo: "VaR Vol 95%" o "VaR Vol 99%".
-var_col = f"VaR Vol {nivel_confianza:.0%}"
-
-# Fórmula:
-# VaR_t = q_alpha * sigma_t
-#
-# Como q_alpha es negativo, el VaR queda como rendimiento negativo.
-# Esto permite compararlo directamente con el P&L real en la gráfica.
-var_volatilidad[var_col] = q_alpha * rolling_sigma
-
-# ==============================
-# Desfase predictivo
-# ==============================
-
-# Hasta aquí, el VaR se calcula usando ventanas de 252 datos.
-#
-# Pero para que sea predictivo, debemos moverlo un día hacia adelante:
-#
-# r1, r2, ..., r252  → calculan VaR → se compara con r253
-# r2, r3, ..., r253  → calculan VaR → se compara con r254
-#
-# Esto evita usar información del mismo día que queremos evaluar.
-risk_cols = [col for col in var_volatilidad.columns if col != "P&L"]
-
-# Movemos las columnas de VaR un día hacia adelante.
-# La columna P&L no se mueve porque representa lo que realmente ocurrió ese día.
-var_volatilidad[risk_cols] = var_volatilidad[risk_cols].shift(1)
-
-# Eliminamos filas vacías.
-# Los NaN aparecen porque:
-# 1. Al inicio no hay 252 datos suficientes para calcular volatilidad.
-# 2. El shift(1) genera un valor vacío adicional.
-var_volatilidad = var_volatilidad.dropna()
-
-# ==============================
-# Selección de datos para graficar
-# ==============================
-
-# Nos aseguramos de no pedir más días de los disponibles.
-dias_mostrar = min(dias_mostrar, len(var_volatilidad))
-
-# Tomamos solo los últimos "dias_mostrar" datos para visualizar.
-# Esto funciona como zoom visual.
-var_plot = var_volatilidad.tail(dias_mostrar)
-
-# ==============================
-# Métricas de violaciones
-# ==============================
-
-# Una violación ocurre cuando el rendimiento real cae por debajo del VaR estimado.
+# Una violación ocurre cuando el rendimiento real cae por debajo del VaR.
 #
 # Ejemplo:
 # P&L = -4%
 # VaR = -2%
-# Como -4% < -2%, la pérdida fue mayor a la esperada → violación.
+# Como -4% < -2%, la pérdida real fue mayor que la estimada.
 violaciones = var_volatilidad["P&L"] < var_volatilidad[var_col]
 
-# Mostramos métricas rápidas.
+# Mostramos métricas rápidas para el nivel seleccionado.
 m1, m2 = st.columns(2)
 
 with m1:
@@ -1026,17 +1029,61 @@ with m1:
 with m2:
     st.metric("Porcentaje de violaciones", f"{violaciones.mean():.2%}")
 
+
 # ==============================
-# Gráfica interactiva
+# TABLA DE VIOLACIONES
 # ==============================
 
-st.subheader(" Serie de tiempo")
+# Además de mostrar el nivel seleccionado, reportamos los dos niveles
+# para cumplir con el ejercicio.
+resultados_var_movil = []
 
-# Creamos una figura interactiva con Plotly.
+for alpha in alphas_var_movil:
+
+    nivel_confianza = 1 - alpha
+    label = f"{nivel_confianza:.0%}"
+    col_var = f"VaR Vol {label}"
+
+    violaciones_temp = var_volatilidad["P&L"] < var_volatilidad[col_var]
+
+    resultados_var_movil.append({
+        "Alpha": alpha,
+        "Nivel de confianza": nivel_confianza,
+        "Medida": col_var,
+        "Violaciones": int(violaciones_temp.sum()),
+        "Porcentaje": violaciones_temp.mean()
+    })
+
+tabla_var_movil = pd.DataFrame(resultados_var_movil)
+
+st.subheader("Tabla de violaciones del VaR con volatilidad móvil")
+
+st.dataframe(
+    tabla_var_movil.style.format({
+        "Alpha": "{:.2f}",
+        "Nivel de confianza": "{:.0%}",
+        "Porcentaje": "{:.2%}"
+    })
+)
+
+
+# ==============================
+# SELECCIÓN DE DATOS PARA GRAFICAR
+# ==============================
+
+# Tomamos únicamente los últimos días seleccionados.
+var_plot = var_volatilidad.tail(dias_mostrar)
+
+
+# ==============================
+# GRÁFICA INTERACTIVA
+# ==============================
+
+st.subheader("Serie de tiempo")
+
 fig = go.Figure()
 
-# Línea de P&L real.
-# Muestra los rendimientos diarios observados.
+# Línea de rendimientos reales.
 fig.add_trace(go.Scatter(
     x=var_plot.index,
     y=var_plot["P&L"],
@@ -1045,8 +1092,7 @@ fig.add_trace(go.Scatter(
     line=dict(width=1)
 ))
 
-# Línea del VaR estimado con volatilidad móvil.
-# Esta línea representa el umbral de pérdida estimado para cada día.
+# Línea del VaR móvil seleccionado.
 fig.add_trace(go.Scatter(
     x=var_plot.index,
     y=var_plot[var_col],
@@ -1056,7 +1102,6 @@ fig.add_trace(go.Scatter(
 ))
 
 # Línea horizontal en cero.
-# Sirve para separar ganancias de pérdidas.
 fig.add_hline(
     y=0,
     line_dash="dot",
@@ -1064,9 +1109,8 @@ fig.add_hline(
     annotation_position="top left"
 )
 
-# Diseño de la gráfica.
 fig.update_layout(
-    title=f"VaR con volatilidad móvil de 252 días ({nivel_confianza:.0%})",
+    title=f"VaR con volatilidad móvil de 252 días ({nivel_confianza_seleccionado:.0%})",
     xaxis_title="Fecha",
     yaxis_title="Rendimiento / pérdida",
     hovermode="x unified",
@@ -1080,11 +1124,7 @@ fig.update_layout(
     )
 )
 
-# Mostramos la gráfica en Streamlit.
 st.plotly_chart(fig, use_container_width=True)
-
-# Convertimos la lista en DataFrame para mostrarla como tabla.
-# ==============================
 
 # ==============================
 # INTERPRETACIÓN 
