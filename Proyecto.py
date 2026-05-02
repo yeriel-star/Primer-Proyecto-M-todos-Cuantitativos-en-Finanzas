@@ -878,7 +878,7 @@ with st.expander("Ver interpretación"):
 # ======================================================================
 
 st.markdown("---")
-st.header("🔴 INCISO F: VaR con volatilidad móvil")
+st.header("VaR con volatilidad móvil")
 
 st.markdown("""
 Este modelo estima el VaR usando una **volatilidad móvil de 252 días**
