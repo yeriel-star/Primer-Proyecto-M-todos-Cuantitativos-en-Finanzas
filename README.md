@@ -93,7 +93,7 @@ Por lo tanto, una combinación de metodologías proporciona una visión más com
 
 ---
 
-## Tecnologías utilizadas
+## Librerias utilizadas
 
 * Python
 * Pandas
