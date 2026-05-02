@@ -172,48 +172,51 @@ with st.expander("Ver interpretación de la curtosis"):
         st.success("κ - 3 = 0: curtosis similar a la normal")
 
         # ==============================
-# ==============================
+## ==============================
 # HISTOGRAMA + KDE + NORMAL
 # ==============================
 
 st.subheader("Distribución de los rendimientos")
 
-# Creamos figura
-fig, ax = plt.subplots()
+# Creamos la figura y el eje donde se dibujará la gráfica
+fig, ax = plt.subplots(figsize=(10, 5))
 
 # ------------------------------
 # Histograma
 # ------------------------------
-# Representa la frecuencia (densidad) de los rendimientos observados.
-# Se usa 'density' para que sea comparable con funciones de densidad.
+# Muestra cómo se distribuyen los rendimientos diarios.
+# stat="density" convierte la frecuencia en densidad,
+# permitiendo compararlo con la KDE y la curva normal.
 sns.histplot(
-    df["Returns"],
+    rendimientos,
     bins=50,
     stat="density",
     ax=ax,
-    color="lightblue"
+    color="lightblue",
+    edgecolor="black",
+    alpha=0.7
 )
 
 # ------------------------------
-# KDE (Kernel Density Estimation)
+# KDE
 # ------------------------------
-# Es una estimación suave de la distribución empírica de los datos.
-# Permite ver la forma real de la distribución sin depender de bins.
+# La KDE suaviza la distribución observada.
+# Sirve para ver mejor la forma real de los rendimientos.
 sns.kdeplot(
-    df["Returns"],
+    rendimientos,
     ax=ax,
     color="blue",
     linewidth=2,
-    label="KDE (densidad empírica)"
+    label="KDE (distribución empírica)"
 )
 
 # ------------------------------
 # Curva normal teórica
 # ------------------------------
-# Se construye usando la media y desviación estándar de los datos.
-# Sirve como referencia para comparar con la distribución real.
-x = np.linspace(df["Returns"].min(), df["Returns"].max(), 1000)
-y = norm.pdf(x, media, desviacion)
+# Creamos una distribución normal usando la media y desviación estándar
+# de los rendimientos reales.
+x = np.linspace(rendimientos.min(), rendimientos.max(), 1000)
+y = norm.pdf(x, loc=media, scale=desviacion)
 
 ax.plot(
     x,
@@ -224,28 +227,30 @@ ax.plot(
 )
 
 # ------------------------------
-# Leyenda
+# Detalles visuales
 # ------------------------------
-# Permite identificar cada elemento de la gráfica.
+ax.set_title("Distribución de rendimientos diarios del trigo")
+ax.set_xlabel("Rendimiento diario")
+ax.set_ylabel("Densidad")
 ax.legend()
 
-# Mostrar gráfica en Streamlit
+# Mostramos la gráfica en Streamlit
 st.pyplot(fig)
 
 # ------------------------------
 # Interpretación
 # ------------------------------
 st.write("""
-El histograma muestra la distribución de los rendimientos diarios del trigo.
+El histograma muestra cómo se distribuyen los rendimientos diarios del trigo.
 
-La curva azul (KDE) representa una estimación suave de la distribución empírica,
-mientras que la línea roja corresponde a una distribución normal teórica basada
-en la media y la desviación estándar.
+La curva azul representa la distribución empírica suavizada mediante KDE,
+mientras que la curva roja representa una distribución normal teórica construida
+con la media y la desviación estándar de los rendimientos.
 
-Esta comparación permite evaluar si los rendimientos siguen una distribución
-normal o presentan características como asimetría o colas pesadas.
+Si la curva azul se aleja mucho de la curva roja, puede indicar que los rendimientos
+no siguen una distribución normal. Esto suele pasar en series financieras, donde
+pueden existir asimetrías, valores extremos o colas pesadas.
 """)
-
 
 # ==============================
 # VaR y Expected Shortfall
