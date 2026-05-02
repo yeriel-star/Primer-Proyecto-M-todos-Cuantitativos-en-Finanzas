@@ -1128,16 +1128,16 @@ with st.expander("Interpretación del VaR con volatilidad móvil"):
 # CONCLUSIONES FINALES
 # ==============================
 
-st.subheader("📌 Conclusiones finales")
+st.subheader("Conclusiones finales")
 
 with st.expander("Ver conclusiones del análisis"):
     st.markdown("""
-    **📊 Síntesis del análisis**
+    ** Síntesis del análisis**
 
     A lo largo del estudio se evaluaron distintas metodologías para la medición del riesgo del trigo,
     incluyendo enfoques históricos, paramétricos (normal y t-Student) y modelos dinámicos con ventanas móviles.
 
-    **📈 Principales hallazgos**
+    Principales hallazgos
 
     - El **VaR histórico** presenta un buen desempeño en niveles de confianza moderados (95%), pero tiende a subestimar el riesgo en escenarios extremos.
     - El **VaR bajo supuestos normales** resulta más conservador, aunque puede no reflejar adecuadamente la presencia de colas pesadas en los datos.
@@ -1145,13 +1145,13 @@ with st.expander("Ver conclusiones del análisis"):
     - El **Expected Shortfall (ES)** demuestra ser una medida más consistente del riesgo extremo, al considerar la magnitud de las pérdidas más severas.
     - El modelo de **volatilidad móvil** permite adaptar el riesgo a las condiciones del mercado, reflejando cambios en la volatilidad a lo largo del tiempo.
 
-    **⚠️ Evaluación del riesgo**
+    Evaluación del riesgo
 
     - Se observa que los modelos que presentan un menor número de violaciones tienden a ser más conservadores.
     - En la práctica financiera, es preferible utilizar modelos que **no subestimen el riesgo**, incluso si esto implica sobreestimarlo ligeramente.
     - El criterio de mantener las violaciones por debajo del **2.5%** resulta adecuado para garantizar estimaciones prudentes.
 
-    **🎯 Conclusión general**
+    Conclusión general
 
     El análisis evidencia que no existe un único modelo óptimo, sino que cada enfoque presenta ventajas y limitaciones.
     Sin embargo, para fines de gestión de riesgo, resulta recomendable utilizar metodologías que capturen adecuadamente
