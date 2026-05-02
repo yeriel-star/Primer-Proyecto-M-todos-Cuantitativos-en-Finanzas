@@ -42,9 +42,10 @@ Su precio está influenciado por diversos factores, entre los que destacan:
 
 Los datos utilizados en este análisis fueron obtenidos automáticamente desde **Yahoo Finance**, considerando información diaria desde el **1 de enero de 2010** hasta la fecha más reciente disponible.
 """)
-# ==============================
-# DESCARGA DE DATOS
-# ==============================
+# ======================================================================
+# 🔴 INCISO A
+# ======================================================================
+
 ticker = "ZW=F"
 
 df = yf.download(
@@ -57,9 +58,9 @@ df = yf.download(
 if isinstance(df.columns, pd.MultiIndex):
     df.columns = df.columns.droplevel(1)
 
-## ==============================
-# CÁLCULO DE RENDIMIENTOS
-# ==============================
+# ======================================================================
+# 🔵 INCISO B: Calculo de rendimientos
+# ======================================================================
 
 # Calculamos el rendimiento diario del trigo.
 # Fórmula:
@@ -252,38 +253,67 @@ no siguen una distribución normal. Esto suele pasar en series financieras, dond
 pueden existir asimetrías, valores extremos o colas pesadas.
 """)
 
-# ==============================
-# VaR y Expected Shortfall
-# ==============================
-st.subheader("VaR y Expected Shortfall")
 
-# Convertimos retornos en pérdidas
-losses = -df["Returns"].dropna()
+# ======================================================================
+# 🔴 INCISO C: MÉTRICAS DE RIESGO (VaR y Expected Shortfall)
+# ======================================================================
 
-# Niveles de confianza
+st.markdown("---")
+st.header("🔴 INCISO D: VaR y Expected Shortfall (ES)")
+
+# --------------------------------------------------
+# CONVERSIÓN A PÉRDIDAS
+# --------------------------------------------------
+# En riesgo financiero se trabaja con pérdidas:
+# pérdida = -rendimiento
+# Así, valores positivos representan pérdidas.
+losses = -rendimientos.dropna()
+
+# --------------------------------------------------
+# NIVELES DE CONFIANZA
+# --------------------------------------------------
+# 95%, 97.5% y 99% son estándares en finanzas
 alphas = [0.95, 0.975, 0.99]
 
-# Lista para guardar resultados
+# Lista donde guardaremos todos los resultados
 resultados = []
 
-# Parámetros normal
+# --------------------------------------------------
+# PARÁMETROS DE LA DISTRIBUCIÓN NORMAL
+# --------------------------------------------------
 mu = losses.mean()
 sigma = losses.std()
 
-# Parámetros t-Student
+# --------------------------------------------------
+# AJUSTE DE DISTRIBUCIÓN t-STUDENT
+# --------------------------------------------------
+# Se usa porque captura mejor colas pesadas (eventos extremos)
+from scipy.stats import t
+
 df_t, loc_t, scale_t = t.fit(losses)
 
-# Monte Carlo usando t-Student ajustada
-np.random.seed(123)
+# --------------------------------------------------
+# MONTE CARLO (basado en t-Student)
+# --------------------------------------------------
+np.random.seed(123)  # reproducibilidad
 n_sim = 100000
+
 mc_losses = t.rvs(df_t, loc=loc_t, scale=scale_t, size=n_sim)
 
+# --------------------------------------------------
+# CÁLCULO DE VaR Y ES PARA CADA NIVEL
+# --------------------------------------------------
 for alpha in alphas:
 
-    # 1. Normal paramétrico
+    # ==========================
+    # 1. NORMAL PARAMÉTRICO
+    # ==========================
     z = norm.ppf(alpha)
+
     var_normal = mu + sigma * z
-    es_normal = mu + sigma * norm.pdf(z) / (1 - alpha)
+
+    # Expected Shortfall (cola de la distribución)
+    es_normal = mu + sigma * (norm.pdf(z) / (1 - alpha))
 
     resultados.append({
         "Método": "Paramétrico Normal",
@@ -292,8 +322,11 @@ for alpha in alphas:
         "ES": es_normal
     })
 
-    # 2. t-Student paramétrico
+    # ==========================
+    # 2. t-STUDENT PARAMÉTRICO
+    # ==========================
     q_t = t.ppf(alpha, df_t)
+
     var_t = loc_t + scale_t * q_t
 
     es_t = loc_t + scale_t * (
@@ -308,8 +341,13 @@ for alpha in alphas:
         "ES": es_t
     })
 
-    # 3. Histórico
+    # ==========================
+    # 3. HISTÓRICO
+    # ==========================
+    # Percentil directamente de los datos
     var_hist = losses.quantile(alpha)
+
+    # Promedio de pérdidas extremas
     es_hist = losses[losses >= var_hist].mean()
 
     resultados.append({
@@ -319,8 +357,11 @@ for alpha in alphas:
         "ES": es_hist
     })
 
-    # 4. Monte Carlo
+    # ==========================
+    # 4. MONTE CARLO
+    # ==========================
     var_mc = np.quantile(mc_losses, alpha)
+
     es_mc = mc_losses[mc_losses >= var_mc].mean()
 
     resultados.append({
@@ -329,6 +370,18 @@ for alpha in alphas:
         "VaR": var_mc,
         "ES": es_mc
     })
+
+
+# --------------------------------------------------
+# RESULTADOS EN TABLA
+# --------------------------------------------------
+df_resultados = pd.DataFrame(resultados)
+
+st.subheader("Resultados de VaR y Expected Shortfall")
+st.dataframe(df_resultados.style.format({
+    "VaR": "{:.4f}",
+    "ES": "{:.4f}"
+}))
 
 # ==============================
 # TABLA FINAL
