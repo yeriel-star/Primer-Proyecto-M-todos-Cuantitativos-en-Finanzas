@@ -714,7 +714,7 @@ with tab99:
 # ======================================================================
 
 st.markdown("---")
-st.header("🔴 INCISO E: Violaciones de VaR y Expected Shortfall")
+st.header(" Violaciones de VaR y Expected Shortfall")
 
 # --------------------------------------------------
 # OBJETIVO DEL INCISO
@@ -795,7 +795,7 @@ for alpha in alphas_rolling:
 # TABLA DE RESULTADOS
 # --------------------------------------------------
 
-tabla_violaciones = pd.DataFrame(violaciones_resultados)
+tabla_violacione = pd.DataFrame(violaciones_resultados)
 
 st.dataframe(
     tabla_violaciones.style.format({
@@ -805,9 +805,6 @@ st.dataframe(
 )
 
 
-# ======================================================================
-# 🔴 INCISO E.1: INTERPRETACIÓN DE LAS VIOLACIONES
-# ======================================================================
 
 st.subheader("Interpretación de violaciones")
 
