@@ -795,7 +795,7 @@ for alpha in alphas_rolling:
 # TABLA DE RESULTADOS
 # --------------------------------------------------
 
-tabla_violacione = pd.DataFrame(violaciones_resultados)
+tabla_violaciones = pd.DataFrame(violaciones_resultados)
 
 st.dataframe(
     tabla_violaciones.style.format({
