@@ -1030,41 +1030,6 @@ with m2:
     st.metric("Porcentaje de violaciones", f"{violaciones.mean():.2%}")
 
 
-# ==============================
-# TABLA DE VIOLACIONES
-# ==============================
-
-# Además de mostrar el nivel seleccionado, reportamos los dos niveles
-# para cumplir con el ejercicio.
-resultados_var_movil = []
-
-for alpha in alphas_var_movil:
-
-    nivel_confianza = 1 - alpha
-    label = f"{nivel_confianza:.0%}"
-    col_var = f"VaR Vol {label}"
-
-    violaciones_temp = var_volatilidad["P&L"] < var_volatilidad[col_var]
-
-    resultados_var_movil.append({
-        "Alpha": alpha,
-        "Nivel de confianza": nivel_confianza,
-        "Medida": col_var,
-        "Violaciones": int(violaciones_temp.sum()),
-        "Porcentaje": violaciones_temp.mean()
-    })
-
-tabla_var_movil = pd.DataFrame(resultados_var_movil)
-
-st.subheader("Tabla de violaciones del VaR con volatilidad móvil")
-
-st.dataframe(
-    tabla_var_movil.style.format({
-        "Alpha": "{:.2f}",
-        "Nivel de confianza": "{:.0%}",
-        "Porcentaje": "{:.2%}"
-    })
-)
 
 
 # ==============================
