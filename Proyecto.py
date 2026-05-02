@@ -1092,7 +1092,7 @@ st.plotly_chart(fig, use_container_width=True)
 
 with st.expander("Interpretación del VaR con volatilidad móvil"):
     st.markdown(f"""
-    Contexto
+    
 
     En este modelo, el VaR se estima utilizando una **volatilidad móvil de 252 días** bajo el supuesto de
     normalidad, lo que permite capturar cambios dinámicos en la variabilidad del mercado.
