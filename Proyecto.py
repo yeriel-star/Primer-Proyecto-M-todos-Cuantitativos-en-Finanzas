@@ -811,7 +811,7 @@ st.subheader("Interpretación de violaciones")
 with st.expander("Ver interpretación"):
 
     st.markdown("""
-    **Idea clave**
+    Idea clave
 
     Las violaciones muestran las ocasiones en las que la pérdida real fue mayor
     que la pérdida estimada por el VaR o por el Expected Shortfall.
@@ -820,7 +820,7 @@ with st.expander("Ver interpretación"):
     riesgo para ese periodo, porque la pérdida observada fue más severa que la
     pérdida que el modelo había anticipado.
 
-    **Criterio del ejercicio**
+    Criterio del ejercicio
 
     De acuerdo con la nota del ejercicio, una buena estimación debe generar un
     porcentaje de violaciones menor al **2.5%**.
@@ -834,7 +834,7 @@ with st.expander("Ver interpretación"):
     """)
 
     st.markdown("""
-    **Interpretación de resultados**
+    Interpretación de resultados
 
     Al comparar los porcentajes de violaciones obtenidos para cada medida de
     riesgo, se observa que los modelos no tienen el mismo desempeño.
@@ -855,7 +855,7 @@ with st.expander("Ver interpretación"):
     """)
 
     st.markdown("""
-    **Conclusión**
+    Conclusión
 
     Con base en el criterio del **2.5%**, las mejores estimaciones son aquellas
     que presentan un porcentaje de violaciones por debajo de dicho umbral.
