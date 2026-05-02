@@ -420,10 +420,11 @@ with st.expander("Ver interpretación del VaR y Expected Shortfall"):
 
 
 
+# ======================================================================
+# 🔴 INCISO D:  Rolling VaR y Expected Shortfall
+# ======================================================================
 
-# ==============================
-# Rolling VaR y Expected Shortfall
-# ==============================
+
 st.subheader(" Rolling VaR y Expected Shortfall")
 
 st.markdown("""
@@ -708,9 +709,9 @@ with tab99:
         - Este nivel es útil para analizar escenarios de estrés o crisis.
         """)
 
-        # ==============================
-# Violaciones de VaR y ES
-# ==============================
+# ======================================================================
+# 🔴 INCISO E:  Violaciones de Var y ES
+# ======================================================================
 st.subheader(" Violaciones de VaR y Expected Shortfall")
 
 # Lista para guardar resultados
@@ -783,9 +784,10 @@ with st.expander("Ver interpretación"):
     """)
     
 
-# ==============================
-# VaR con volatilidad móvil interactivo
-# ==============================
+# ======================================================================
+# 🔴 INCISO F una volatilidad m ́ovil y asumiendo una distribu-
+cion normal
+# ======================================================================
 
 st.subheader(" VaR con volatilidad móvil")
 
